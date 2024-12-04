@@ -1,0 +1,206 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+
+class RoomBookingApp extends Frame implements ActionListener {
+    // Components
+    Label lblWelcome, lblUsername, lblPassword, lblConfirmPassword, lblSpecialReq;
+    TextField tfUsername, tfPassword, tfConfirmPassword, tfSpecialReq;
+    Button btnLogin, btnRegister, btnRoomBook, btnUpdateRooms, btnExit, btnSubmit, btnBack;
+    TextArea taRooms;
+    Panel panelLogin, panelRegister, panelBooking, panelMenu;
+    HashMap<String, String> users = new HashMap<>();
+    HashMap<String, Boolean> rooms = new HashMap<>();
+    String currentUser = "";
+
+    RoomBookingApp() {
+        // Initialize Room Data
+        for (int i = 1; i <= 10; i++) {
+            rooms.put("Room " + i, true);
+        }
+
+        // Frame Setup
+        setTitle("Room Booking Application");
+        setSize(500, 500);
+        setLayout(new CardLayout());
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                System.exit(0);
+            }
+        });
+
+        // Panels
+        panelLogin = new Panel();
+        panelRegister = new Panel();
+        panelBooking = new Panel();
+        panelMenu = new Panel();
+
+        panelLogin.setLayout(new GridLayout(4, 2));
+        panelRegister.setLayout(new GridLayout(5, 2));
+        panelBooking.setLayout(new GridLayout(2, 1));
+        panelMenu.setLayout(new GridLayout(5, 1));
+
+        // Login Panel
+        lblUsername = new Label("Username:");
+        lblPassword = new Label("Password:");
+        tfUsername = new TextField();
+        tfPassword = new TextField();
+        tfPassword.setEchoChar('*');
+        btnLogin = new Button("Login");
+        btnRegister = new Button("Register");
+        btnLogin.addActionListener(this);
+        btnRegister.addActionListener(this);
+        panelLogin.add(lblUsername);
+        panelLogin.add(tfUsername);
+        panelLogin.add(lblPassword);
+        panelLogin.add(tfPassword);
+        panelLogin.add(btnLogin);
+        panelLogin.add(btnRegister);
+
+        // Register Panel
+        lblConfirmPassword = new Label("Confirm Password:");
+        tfConfirmPassword = new TextField();
+        tfConfirmPassword.setEchoChar('*');
+        btnSubmit = new Button("Submit");
+        btnBack = new Button("Back");
+        btnSubmit.addActionListener(this);
+        btnBack.addActionListener(this);
+        panelRegister.add(lblUsername);
+        panelRegister.add(tfUsername);
+        panelRegister.add(lblPassword);
+        panelRegister.add(tfPassword);
+        panelRegister.add(lblConfirmPassword);
+        panelRegister.add(tfConfirmPassword);
+        panelRegister.add(btnSubmit);
+        panelRegister.add(btnBack);
+
+        // Menu Panel
+        btnRoomBook = new Button("Book Room");
+        btnUpdateRooms = new Button("View/Update Rooms");
+        btnExit = new Button("Exit");
+        btnRoomBook.addActionListener(this);
+        btnUpdateRooms.addActionListener(this);
+        btnExit.addActionListener(this);
+        panelMenu.add(new Label("Welcome! Select an Option"));
+        panelMenu.add(btnRoomBook);
+        panelMenu.add(btnUpdateRooms);
+        panelMenu.add(btnExit);
+
+        // Booking Panel
+        lblSpecialReq = new Label("Special Request:");
+        tfSpecialReq = new TextField();
+        taRooms = new TextArea();
+        taRooms.setEditable(false);
+        btnSubmit = new Button("Book");
+        btnBack = new Button("Back");
+        btnSubmit.addActionListener(this);
+        btnBack.addActionListener(this);
+        panelBooking.add(lblSpecialReq);
+        panelBooking.add(tfSpecialReq);
+        panelBooking.add(taRooms);
+        panelBooking.add(btnSubmit);
+        panelBooking.add(btnBack);
+
+        // Add Panels
+        add(panelLogin, "Login");
+        add(panelRegister, "Register");
+        add(panelMenu, "Menu");
+        add(panelBooking, "Booking");
+
+        showLogin();
+    }
+
+    void showLogin() {
+        CardLayout cl = (CardLayout) getLayout();
+        cl.show(this, "Login");
+    }
+
+    void showRegister() {
+        CardLayout cl = (CardLayout) getLayout();
+        cl.show(this, "Register");
+    }
+
+    void showMenu() {
+        CardLayout cl = (CardLayout) getLayout();
+        cl.show(this, "Menu");
+    }
+
+    void showBooking() {
+        CardLayout cl = (CardLayout) getLayout();
+        taRooms.setText("Available Rooms:\n");
+        for (Map.Entry<String, Boolean> entry : rooms.entrySet()) {
+            if (entry.getValue()) {
+                taRooms.append(entry.getKey() + "\n");
+            }
+        }
+        cl.show(this, "Booking");
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+
+        if (command.equals("Login")) {
+            String username = tfUsername.getText().trim();
+            String password = tfPassword.getText().trim();
+            if (users.containsKey(username) && users.get(username).equals(password)) {
+                currentUser = username;
+                showMenu();
+            } else {
+                showMessage("Invalid login. Please try again.");
+            }
+        } else if (command.equals("Register")) {
+            showRegister();
+        } else if (command.equals("Submit")) {
+            String username = tfUsername.getText().trim();
+            String password = tfPassword.getText().trim();
+            String confirmPassword = tfConfirmPassword.getText().trim();
+            if (!password.equals(confirmPassword)) {
+                showMessage("Passwords do not match. Try again.");
+            } else if (users.containsKey(username)) {
+                showMessage("Username already exists. Choose another.");
+            } else {
+                users.put(username, password);
+                showMessage("Registration successful!");
+                showLogin();
+            }
+        } else if (command.equals("Back")) {
+            showLogin();
+        } else if (command.equals("Book Room")) {
+            showBooking();
+        } else if (command.equals("View/Update Rooms")) {
+            taRooms.setText("Available Rooms:\n");
+            for (Map.Entry<String, Boolean> entry : rooms.entrySet()) {
+                taRooms.append(entry.getKey() + " - " + (entry.getValue() ? "Available" : "Booked") + "\n");
+            }
+        } else if (command.equals("Book")) {
+            String specialReq = tfSpecialReq.getText().trim();
+            for (Map.Entry<String, Boolean> entry : rooms.entrySet()) {
+                if (entry.getValue()) {
+                    rooms.put(entry.getKey(), false);
+                    showMessage("Room " + entry.getKey() + " booked successfully!");
+                    showMenu();
+                    return;
+                }
+            }
+            showMessage("No rooms available.");
+        } else if (command.equals("Exit")) {
+            System.exit(0);
+        }
+    }
+
+    void showMessage(String message) {
+        Dialog d = new Dialog(this, "Message", true);
+        d.setLayout(new FlowLayout());
+        Label l = new Label(message);
+        Button b = new Button("OK");
+        b.addActionListener(e -> d.setVisible(false));
+        d.add(l);
+        d.add(b);
+        d.setSize(300, 150);
+        d.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new RoomBookingApp().setVisible(true);
+    }
+}
